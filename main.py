@@ -7,11 +7,13 @@ import random
 from gtts import gTTS
 import webbrowser
 import pygame
+import wikipedia
+import pyjokes
 
 pygame.mixer.init()
-
-
 r = sr.Recognizer()
+
+# create a function that execute commands input
 
 def record_audio(ask = False):
     with sr.Microphone() as source:
@@ -20,7 +22,7 @@ def record_audio(ask = False):
         audio = r.listen(source)
         try:
             voice_data = r.recognize_google(audio)
-            print("you said:"+ voice_data)
+            print("you said: "+ voice_data)
         except sr.UnknownValueError:
             echo_speak("Sorry, I did not get that")
         except sr.RequestError:
@@ -35,14 +37,13 @@ def echo_speak(audio_string):
     pygame.mixer.music.load(audio_file)
     pygame.mixer.music.play()
     print(audio_string)
-    #delete auio_file if audio is not active
+    #delete audio_file once audio end
     while pygame.mixer.music.get_busy():
         continue
     pygame.mixer.music.unload()
-    time.sleep(2)
     os.remove(audio_file)
        
-def respond(voice_data):
+def command(voice_data):
     if 'what is your name' in voice_data:
         echo_speak("My name is Echo")
     if 'what time is it' in voice_data:
@@ -52,7 +53,6 @@ def respond(voice_data):
         url = "https://google.com/search?q=" + search
         webbrowser.get().open(url)
         echo_speak("Here is what I found for " + search)
-    # play music on the web
     if 'song' in voice_data:
         song = record_audio("What song do you want to play?")
         pywhatkit.playonyt(song)
@@ -62,12 +62,18 @@ def respond(voice_data):
         url = "https://google.nl/maps/place/" + location + "/&amp;"
         webbrowser.get().open(url)
         echo_speak("Here is the location of " + location)
-    
+    if 'who is' in voice_data:
+        wiki = record_audio("Who is the person you want to know?")
+        info = wikipedia.summary(wiki, 1)
+        echo_speak("Here is what I found on wikipedia" + info)
+    if 'joke' in voice_data:
+        echo_speak(pyjokes.get_joke())
     if 'exit' in voice_data:
         echo_speak("It's been nice talking to you! goodbye")
         exit()
     
+time.sleep(1)
 echo_speak("Hello! How can i help you?")
 while 1:
     voice_data = record_audio()
-    respond(voice_data)
+    command(voice_data)
